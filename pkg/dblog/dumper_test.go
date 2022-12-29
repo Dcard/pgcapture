@@ -8,7 +8,6 @@ import (
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
 	"github.com/rueian/pgcapture/pkg/pb"
-	"github.com/rueian/pgcapture/pkg/sql"
 )
 
 func TestPGXSourceDumper(t *testing.T) {
@@ -21,7 +20,7 @@ func TestPGXSourceDumper(t *testing.T) {
 
 	conn.Exec(ctx, "DROP SCHEMA public CASCADE; CREATE SCHEMA public")
 	conn.Exec(ctx, "DROP EXTENSION IF EXISTS pgcapture")
-	conn.Exec(ctx, sql.InstallExtension)
+	conn.Exec(ctx, "CREATE EXTENSION IF NOT EXISTS pglogical")
 	conn.Exec(ctx, "CREATE TABLE t1 AS SELECT * FROM generate_series(1,100000) AS id; ANALYZE t1")
 
 	dumper, err := NewPGXSourceDumper(ctx, "postgres://postgres@127.0.0.1/postgres?sslmode=disable")

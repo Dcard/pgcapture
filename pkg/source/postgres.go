@@ -64,10 +64,6 @@ func (p *PGXSource) Capture(cp Checkpoint) (changes chan Change, err error) {
 		return nil, err
 	}
 
-	if _, err = p.setupConn.Exec(ctx, sql.InstallExtension); err != nil {
-		return nil, err
-	}
-
 	p.schema = decode.NewPGXSchemaLoader(p.setupConn)
 	if err = p.schema.RefreshType(); err != nil {
 		return nil, err

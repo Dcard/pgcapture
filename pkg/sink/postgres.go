@@ -98,10 +98,6 @@ func (p *PGXSink) Setup() (cp source.Checkpoint, err error) {
 		return cp, errors.New("pg_try_advisory_lock failed, another process is occupying")
 	}
 
-	if _, err = p.conn.Exec(ctx, sql.InstallExtension); err != nil {
-		return cp, err
-	}
-
 	if _, err = p.conn.Exec(ctx, "insert into pgcapture.sources(id) values ($1) on conflict (id) do nothing", p.pgSrcID); err != nil {
 		return cp, err
 	}
