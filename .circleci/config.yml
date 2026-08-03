@@ -1,8 +1,14 @@
-version: 2
+version: 2.1
+
+orbs:
+  gke: dcard/gke-v2@1.2.2
+  genkit: dcard/genkit-v2@1.1.0
+  kube: dcard/kube@1.0.0
+
 jobs:
   build:
     machine:
-      image: ubuntu-2004:202010-01
+      image: ubuntu-2204:current
     steps:
       - checkout
       - run: docker-compose pull pg
@@ -16,3 +22,34 @@ jobs:
       - run: ./cc-test-reporter before-build
       - run: go test -race -p 1 -coverprofile=./c.out ./...
       - run: ./cc-test-reporter after-build -p $(go list -m) --exit-code $?
+  deploy:
+    machine:
+      image: ubuntu-2204:current
+    steps:
+      - checkout
+      - run:
+          name: Build Docker image
+          command: docker build -t pgcapture-gateway:latest .
+      - gke/setup
+      - genkit/push-image:
+          image_name: pgcapture-gateway
+      - kube/update-images:
+          environment: staging
+          keys: pgcapture-gateway
+
+workflows:
+  build:
+    jobs:
+      - build
+      - deploy:
+          name: deploy:staging
+          context:
+            - github-common
+            - gcp-common
+            - gcp-be-staging
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master
