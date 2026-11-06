@@ -7,9 +7,9 @@ jobs:
       - checkout
       - run: docker-compose pull pg
       - run: docker-compose up -d --no-build
-      - run: curl -L https://golang.org/dl/go1.16.linux-amd64.tar.gz > /tmp/go1.16.linux-amd64.tar.gz
-      - run: tar -C /tmp -xzf /tmp/go1.16.linux-amd64.tar.gz
-      - run: export PATH=$PATH:/tmp/go/bin
+      - run: curl -L https://go.dev/dl/go1.27.3.linux-amd64.tar.gz > /tmp/go1.27.3.linux-amd64.tar.gz
+      - run: tar -C /tmp -xzf /tmp/go1.27.3.linux-amd64.tar.gz
+      - run: echo 'export PATH=/tmp/go/bin:$PATH CGO_CFLAGS="-O2 -g -DHAVE_STRCHRNUL=1"' >> $BASH_ENV
       - run: curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
       - run: chmod +x ./cc-test-reporter
       - run: go get -v -t -d ./...
