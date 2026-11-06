@@ -1,6 +1,7 @@
 package source
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"strconv"
@@ -9,8 +10,9 @@ import (
 
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pglogrepl"
-	"github.com/jackc/pgproto3/v2"
 	"github.com/jackc/pgx/v4"
+	pgconnv5 "github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgproto3"
 	"github.com/rueian/pgcapture/pkg/decode"
 	"github.com/rueian/pgcapture/pkg/sql"
 	"github.com/sirupsen/logrus"
@@ -25,7 +27,7 @@ type PGXSource struct {
 	CreateSlot   bool
 
 	setupConn      *pgx.Conn
-	replConn       *pgconn.PgConn
+	replConn       *pgconnv5.PgConn
 	schema         *decode.PGXSchemaLoader
 	decoder        *decode.PGLogicalDecoder
 	nextReportTime time.Time
@@ -83,7 +85,7 @@ func (p *PGXSource) Capture(cp Checkpoint) (changes chan Change, err error) {
 		}
 	}
 
-	p.replConn, err = pgconn.Connect(context.Background(), p.ReplConnStr)
+	p.replConn, err = pgconnv5.Connect(context.Background(), p.ReplConnStr)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +156,9 @@ func (p *PGXSource) fetching(ctx context.Context) (change Change, err error) {
 			if err != nil {
 				return change, err
 			}
-			m, err := p.decoder.Decode(xld.WALData)
+			// pgx v5 reuses the receive buffer on the next ReceiveMessage call,
+			// but the decoded message keeps referencing the WAL data.
+			m, err := p.decoder.Decode(bytes.Clone(xld.WALData))
 			if m == nil || err != nil {
 				return change, err
 			}

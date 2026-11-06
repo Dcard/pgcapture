@@ -11,11 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgconn"
 	"github.com/jackc/pglogrepl"
-	"github.com/jackc/pgproto3/v2"
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
+	pgconnv5 "github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgproto3"
 	"github.com/rueian/pgcapture/pkg/pb"
 	"github.com/rueian/pgcapture/pkg/sql"
 	"google.golang.org/protobuf/proto"
@@ -118,7 +118,7 @@ func TestPGLogicalDecoder(t *testing.T) {
 		}
 	}
 
-	repl, err := pgconn.Connect(ctx, "postgres://postgres@127.0.0.1/postgres?replication=database")
+	repl, err := pgconnv5.Connect(ctx, "postgres://postgres@127.0.0.1/postgres?replication=database")
 	if err != nil {
 		t.Fatal(err)
 	}
